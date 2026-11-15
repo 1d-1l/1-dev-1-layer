@@ -618,6 +618,9 @@ addLayer("l5", {
             style() {
                 return { 'border-color': inChallenge('l5', this.id) ? '#ff0000' : '#ff9c9c', 'background-color': inChallenge('l5', this.id) ? '#ff000070' : 'black', 'color': inChallenge('l5', this.id) ? '#ff0000':"#ff9c9c", 'shadow': inChallenge('l5', this.id) ? '0px 0px 24px #ff0000' : '' };
             },
+            canEnter() {
+                return !player.l8.voidShaped
+            },
         },
         32: {
             name: "最终试炼?",
@@ -658,6 +661,9 @@ addLayer("l5", {
             },
             style() {
                 return { 'border-color': inChallenge('l5', this.id) ? '#ff0000' : '#ff9c9c', 'background-color': inChallenge('l5', this.id) ? '#ff000070' : 'black', 'color': inChallenge('l5', this.id) ? '#ff0000':"#ff9c9c", 'shadow': inChallenge('l5', this.id) ? '0px 0px 24px #ff0000' : '' };
+            },
+            canEnter() {
+                return !player.l8.voidShaped
             },
         },
     },

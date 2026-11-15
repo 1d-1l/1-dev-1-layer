@@ -337,7 +337,7 @@ addLayer("l8", {
 			seed: Math.random(),
 			rEL: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 			
-            unlocked: true,
+            unlocked: false,
 			points: n(0),
 			total: n(0),
 			intrinsic: n(0),

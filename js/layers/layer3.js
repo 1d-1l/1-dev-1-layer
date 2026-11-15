@@ -10,7 +10,7 @@ addLayer("l3", {
     position: 0,
     startData() {
         return {
-            unlocked: true,
+            unlocked: false,
             points: new Decimal(0),
             total: new Decimal(0),
             bhUnlocked: false,

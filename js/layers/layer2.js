@@ -955,10 +955,11 @@ addLayer("l2", {
             title() { return `<b class = "voidResource2", style="text-shadow:0 0 3px #ff00c3">虚空核心等级</b><b class = "voidResource", style="text-shadow:0 0 3px #ff00c3">${formatWhole(getBuyableAmount("l2",21))}</b><br>` },
             cost(x) {
                 let ct = n(6.5)
+                if (x.gte(150)) x = x.div(150).pow(2).mul(300).sub(150)
                 if(x.lte(5)) ct = x.pow(1.25).div(4).add(6.5)
                 else if(x.lte(15)) ct = x.sub(5).max(0).times(20).pow(x.sub(6).max(0).pow(0.05)).add(9.1)
                 else ct = x.sub(15).pow_base(x.pow(0.01).div(10).add(1.1)).times(450)
-                if(hasUpgrade("l2",104)) ct = x.pow(1.5).times(x.pow_base(1.05)).times(1000)
+                if(hasUpgrade("l2",104)) ct = ct.min(x.pow(1.5).times(x.pow_base(1.05)).times(1000))
                 if(hasUpgrade("l2",95)) ct = ct.div(player.l2.wondervoid.add(1).pow(hasUpgrade("l2",101)?3.666:2).ln().div(20).add(1).times(hasUpgrade("l2",103)?buyableEffect("l2",22)[3]:1)) 
                 return ct.pow_base(10)
             },
@@ -979,7 +980,7 @@ addLayer("l2", {
                 return [eff1,eff2,eff3,eff4,eff5]
             },
             display() { return `<b class = "voidResource2", style="text-shadow:0 0 2px #ff00c3"> 需求: ${format(this.cost())} 转生点数</b>
-                                效果I:转生点数获取^${format(player.l2.points.add(1).log10().max(1).pow(this.effect()[0]))} 
+                                效果I:转生点数获取^${format(player.l2.points.add(10).max(10).log10().max(1).pow(this.effect()[0]))} 
                                 效果II:虚空矿石获取^${format(this.effect()[1])},冲击加成按^2倍数加成
                                 效果III:二阶核心等级每秒乘以${format(this.effect()[2],4)}`//转生点数数量级^${format(this.effect()[0])}
                                 +(hasUpgrade("l2",93)?`<br>效果IV:转生点数在侵蚀之后^${format(this.effect()[3])}

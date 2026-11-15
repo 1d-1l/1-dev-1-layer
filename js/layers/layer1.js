@@ -23,9 +23,6 @@ const voiddataupg = {
 		};
 	},
 	currencyDisplayName: '虚空矿石',
-	unlocked() {
-		return hasUpgrade("l1",31)
-	},
 }
 addLayer("l1", {
     infoboxes: {
