@@ -1,0 +1,5 @@
+发进tmt大群的时候记得把整个文件夹删了
+
+expantanum和powiainanum是套壳Decimal
+
+mod.js塞了一堆有点用的东西
