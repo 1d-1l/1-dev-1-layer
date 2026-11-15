@@ -180,7 +180,7 @@ addLayer("l2", {
                 if (!hasUpgrade('l2', 11)) return n(1)
                 let eff = n(player.l1.resetTime).min(1000).add(1).pow(0.1)
                 if (hasUpgrade('l4', 33)) eff = Decimal.pow(10, n(player.l1.resetTime).min(10).pow(1.5));
-                if (hasUpgrade('l4', 33)) eff = Decimal.pow('1e100', n(player.l1.resetTime).min(1).pow(2));
+                if (hasUpgrade('l4', 52)) eff = Decimal.pow('1e100', n(player.l1.resetTime).min(1).pow(2));
                 eff = eff.pow(buyableEffect('l8', 1043));
 				return eff
             },
