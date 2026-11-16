@@ -12,15 +12,24 @@ addLayer("l2", {
                 "prestige-button",
                 "resource-display",
                 "blank",
-            ["display-text", function () { return `核心增益I: 复制器获取变为^${formatSmall(buyableEffect("l2", 11)[0], 3)}` + (getBuyableAmount('l2', 12).gt(0) ? `(二阶核心使其^${format(buyableEffect("l2", 12)[0])})` : ``) }],
-            ["display-text", function () { return hasUpgrade("l2", 23) ? `核心增益II: 转生点数获取x${formatSmall(buyableEffect("l2", 11)[1])}` + (getBuyableAmount('l2', 12).gt(0) ? `(二阶核心使其^${format(buyableEffect("l2", 12)[1])})` : ``) : `` }],
+            ["display-text", function () {
+                if(player.l8.voidShaped) return `<span style="color:#000; text-shadow:0 0 2px #fff, 0 0 5px #fff, 0 0 10px #fff">核心虚空增益I：虚空矿石获取变为×${formatWhole(getBuyableAmount('l2', 11).add(1))}</span>`
+                return `核心增益I: 复制器获取变为^${formatSmall(buyableEffect("l2", 11)[0], 3)}` + (getBuyableAmount('l2', 12).gt(0) ? `(二阶核心使其^${format(buyableEffect("l2", 12)[0])})` : ``)
+            }],
+            ["display-text", function () {
+                if(!hasUpgrade("l2", 23)) return ``
+                if(player.l8.voidShaped) return `<span style="color:#000; text-shadow:0 0 2px #fff, 0 0 5px #fff, 0 0 10px #fff">核心虚空增益II：数据在侵蚀之后×${format(layers.l2.coreVoidGain2())}</span>`
+                return `核心增益II: 转生点数获取x${formatSmall(buyableEffect("l2", 11)[1])}` + (getBuyableAmount('l2', 12).gt(0) ? `(二阶核心使其^${format(buyableEffect("l2", 12)[1])})` : ``)
+            }],
             ["display-text", function () { return getBuyableAmount('l2', 12).gt(0) ? `核心增益III: 奇点获取x${format(buyableEffect("l2", 12)[2])}` : `` }],
             ["display-text", function () { return hasMilestone('l4', 20) ? `核心增益IV: 第5行增幅器的效果^${format(tmp.l2.coreEffect4)}` : `` }],
             ["display-text", function () { return hasUpgrade('l4', 61) ? `核心增益V: 点数获取x${format(tmp.l2.coreEffect5)}` + (getBuyableAmount('l2', 12).gt(0) ? `(二阶核心使其^${format(tmp.l2.coreEffect5b)})` : ``) : `` }],
                 "blank",
                 ["buyables", [1]],
                 "blank",
-            ["upgrades", [1, 2, 3, 9, 10]],
+                ["buyables", [3]],
+                "blank",
+            ["upgrades", [0, 1, 2, 3, 9, 10]],
             ],
         },
         "里程碑": {
@@ -46,6 +55,14 @@ addLayer("l2", {
                 ["clickables",[1]],
             ], unlocked() { return hasUpgrade('l2', 91) }
         },
+        "虚空采集器固化": {
+            content: [
+                "main-display", "blank",
+                ["display-text", function () { return `用转生点数固化第一层虚空采集器升级；购买后原升级失效且无法再购买。` }],
+                "blank",
+                ["upgrades",[20,21,22,23,24]],
+            ], unlocked() { return player.l8.voidShaped }
+        },
     },
     name: "第二层 制作：[author]", // This is optional, only used in a few places, If absent it just uses the layer id.
     symbol: "R", // This appears on the layer's node. Default is the id with the first letter capitalized
@@ -69,6 +86,13 @@ addLayer("l2", {
         if (player.l3.total.gte(32768)) km.push(5);
         if (hasMilestone("l4", 6)) keep.push("upgrades");
         if (hasMilestone("l4", 14) || hasMilestone('l8', 0)) keep.push("milestones");
+        if (resettingLayer === "l3") {
+            const solidIds = [201,202,203,204,205,211,212,213,214,215,221,222,223,224,225,231,232,233,234,235]
+            const solids = solidIds.filter(id => hasUpgrade("l2", id))
+            layerDataReset("l2", keep, km)
+            for (const id of solids) if (!player.l2.upgrades.includes(id)) player.l2.upgrades.push(id)
+            return
+        }
         if (layers[resettingLayer].row > this.row) layerDataReset("l2", keep, km);
     },
     color: "#ff00c3",
@@ -78,10 +102,36 @@ addLayer("l2", {
     baseAmount() { return player.l1.points }, // Get the current amount of baseResource
     type: "normal", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
     exponent: 1 / 6, // Prestige currency exponent
+    coreVoidGain2() {
+        if(!player.l8.voidShaped || !hasUpgrade("l2", 23)) return n(1)
+        return Decimal.pow(2, getBuyableAmount('l2', 11))
+    },
+    coreEchoData() {
+        if(!player.l8.voidShaped || !hasUpgrade("l2", 2)) return n(1)
+        return getBuyableAmount('l2', 11).add(1)
+    },
+    solidStyle(id) {
+        if(id === undefined) return {}
+        const bought = hasUpgrade("l2", id)
+        const base = {
+            'border-radius': '0px',
+            'border': bought ? '2px solid white' : '1px solid grey',
+            'box-shadow': bought ? '0px 0px 5px 4px #ff00c3' : '0px 0px 2px 2px black',
+            'height': '125px',
+            'width': '125px',
+            'transform': 'scale(0.85)',
+            'font-size': '12px',
+        }
+        if(bought) return {...base, 'background': '#ff00c3', 'color': 'white'}
+        // 未购买时不覆盖背景色，只按是否买得起决定光晕颜色
+        const afford = player.l2.points.gte(layers.l2.upgrades[id].cost)
+        return {...base, 'box-shadow': afford ? '0px 0px 2px 2px #ff00c3' : '0px 0px 2px 2px black'}
+    },
     gainMult() { // Calculate the multiplier for main currency from bonuses
         let mult = new Decimal(1)
         if (hasUpgrade("l2", 22)) mult = mult.times(upgradeEffect("l2", 22))
-        if (hasUpgrade("l2", 23)) mult = mult.times(buyableEffect("l2", 11)[1])
+        if (player.l8.voidShaped && hasUpgrade("l2", 1)) mult = mult.times(upgradeEffect("l2", 1))
+        if (hasUpgrade("l2", 23) && !player.l8.voidShaped) mult = mult.times(buyableEffect("l2", 11)[1])
         if (hasUpgrade("l1", 24)) mult = mult.times(upgradeEffect("l1", 24))
         if (hasUpgrade('l3', 13)) mult = mult.mul(upgradeEffect('l3', 13));
         mult = mult.mul(tmp.l3.ptsEff2);
@@ -95,8 +145,6 @@ addLayer("l2", {
     gainExp() { // Calculate the exponent on main currency from bonuses
         let base = new Decimal(1)
         if (player.l7.neff3[1]) base = base.mul(player.l7.ncalc3[1])
-        if (hasUpgrade("l1", 35)) base = base.mul(250)
-        if (hasUpgrade("l2", 91)) base = base.mul(player.l2.points.add(1).log10().max(1).pow(buyableEffect("l2",21)[0]))
 		
 		if(hasUpgrade('l8', 11)) base = base.mul(player.l8.tuning[2].div(10));
         base = base.mul(buyableEffect('l8', 1062));
@@ -117,6 +165,20 @@ addLayer("l2", {
         if(hasUpgrade("l2",94)) gain = gain.mul(upgradeEffect("l2",94))
         if(hasUpgrade("l2",95)) gain = gain.mul(buyableEffect("l2",22)[1])
         if(hasUpgrade("l2",103)) gain = gain.pow(1.02)
+        // 虚空核心效果I：侵蚀之后转生点数×(1+核心等级/2)
+        if(hasUpgrade("l2",91)) gain = gain.mul(buyableEffect("l2",21)[0])
+        // 协同机MK.V：侵蚀之后获得更多转生点数
+        if(hasUpgrade("l1",75)&&!hasUpgrade("l2",235)) gain = gain.mul(upgradeEffect("l1",75))
+        if(hasUpgrade("l2",235)) gain = gain.mul(upgradeEffect("l2",235))
+        // 无穷递归：侵蚀之后转生点数×(1+log10(1+转生点数)^2)
+        if(hasUpgrade("l1",26)) gain = gain.mul(upgradeEffect("l1",26))
+        // 数据终结（l1-36）：侵蚀之后先 ^4，再由核心回响放大
+        if(hasUpgrade("l1",36)) gain = gain.pow(4)
+        // 核心回响：侵蚀之后乘(1+核心等级)，避免被侵蚀软上限压掉
+        if(player.l8.voidShaped && hasUpgrade("l2", 1)) gain = gain.mul(upgradeEffect("l2", 1))
+        if(player.l8.voidShaped && hasUpgrade("l2", 6)) gain = gain.mul(10)
+        // 转生共鸣（L2 buyable 34）：转生点数获取×2^等级
+        if(player.l8.voidShaped) gain = gain.mul(buyableEffect('l2', 34))
 		return gain.floor().max(0);
 	},
     passiveGeneration() {
@@ -141,7 +203,7 @@ addLayer("l2", {
     milestones: {
         0: {
             requirementDescription: "1 总转生点数",
-            effectDescription: "解锁核心, 点数获取x2",
+            effectDescription() { return "解锁核心, 点数获取x" + (player.l8.voidShaped ? 10 : 2) },
             done() { return player.l2.points.gte(1) },
         },
         1: {
@@ -169,8 +231,254 @@ addLayer("l2", {
             effectDescription: "转生不再重置数据, 上一个里程碑的效果x10",
             done() { return player.l2.total.gte(5e13) },
         },
+        6: {
+            requirementDescription: "1e6 总转生点数",
+            effectDescription: "数据层自动化：自动第一层重置/自动采集常开，数据获取×10",
+            done() { return player.l8.voidShaped && player.l2.total.gte(1e6) },
+        },
     },
     upgrades: {
+        1: {
+            title: "核心回响",
+            description: "基于核心等级提升转生点数获取",
+            effect() { if (!hasUpgrade("l2", 1)) return n(1); return getBuyableAmount('l2', 11).add(1) },
+            effectDisplay() { return "x" + format(this.effect()) },
+            cost: new Decimal(50),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 15) },
+        },
+        2: {
+            title: "数据回响",
+            description: "基于核心等级提升数据获取（侵蚀之后）",
+            effect() { if (!hasUpgrade("l2", 2)) return n(1); return getBuyableAmount('l2', 11).add(1) },
+            effectDisplay() { return "x" + format(this.effect()) },
+            cost: new Decimal(500),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 1) },
+        },
+        3: {
+            title: "核心折扣",
+            description: "核心价格 ^0.9",
+            cost: new Decimal(2000),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 2) },
+        },
+        4: {
+            title: "自动重置协议",
+            description: "解锁第一层「自动第一层重置」开关",
+            cost: new Decimal(1e4),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 3) },
+        },
+        5: {
+            title: "自动冲击协议",
+            description: "解锁第一层「自动冲击」开关",
+            cost: new Decimal(1e5),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 4) },
+        },
+        6: {
+            title: "转生回响",
+            description: "转生点数获取 ×10（侵蚀之后）",
+            cost: new Decimal(1e6),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 5) },
+        },
+        16: {
+            title: "虚空锚定",
+            description: "初始解锁所有虚空采集器升级",
+            cost: new Decimal(2e6),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 15) },
+        },
+        26: {
+            title: "数据洪流",
+            description: "每秒获取1e10%重置时可获取的数据",
+            cost: new Decimal(5e7),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 25) },
+        },
+        201: {
+            title: "固化采集器MK.II",
+            description: "采集成功率提升至25%",
+            cost: new Decimal(1e3),
+            unlocked() { return player.l8.voidShaped },
+            style() { return layers.l2.solidStyle(201) },
+        },
+        202: {
+            title: "固化采集器MK.III",
+            description: "采集成功率提升至50%，自动采集速度×4",
+            cost: new Decimal(1e4),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 201) },
+            style() { return layers.l2.solidStyle(202) },
+        },
+        203: {
+            title: "固化采集器MK.IV",
+            description: "每次采集有25%概率使数据获取^2",
+            cost: new Decimal(1e5),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 202) },
+            style() { return layers.l2.solidStyle(203) },
+        },
+        204: {
+            title: "固化采集器MK.V",
+            description: "基于数据增加采集成功率，上限25%",
+            cost: new Decimal(1e6),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 203) },
+            style() { return layers.l2.solidStyle(204) },
+        },
+        205: {
+            title: "固化采集器MK.VI",
+            description: "每次获取虚空矿石时，15%概率获得15%重置数据",
+            cost: new Decimal(1e7),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 204) },
+            style() { return layers.l2.solidStyle(205) },
+        },
+        211: {
+            title: "固化精炼器MK.I",
+            description: "你可以冲击虚空采集器了",
+            cost: new Decimal(1e7),
+            unlocked() { return player.l8.voidShaped },
+            style() { return layers.l2.solidStyle(211) },
+        },
+        212: {
+            title: "固化精炼器MK.II",
+            description: "冲击以倍数加成虚空矿石获取，采集器MK.IV的概率提升到60%",
+            cost: new Decimal(1e8),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 211) },
+            style() { return layers.l2.solidStyle(212) },
+        },
+        213: {
+            title: "固化精炼器MK.III",
+            description: "矿石加成自身获取，数据获取^2",
+            cost: new Decimal(1e9),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 212) },
+            style() { return layers.l2.solidStyle(213) },
+        },
+        214: {
+            title: "固化精炼器MK.IV",
+            description: "MK.IV加成次数计入冲击加成公式",
+            cost: new Decimal(1e10),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 213) },
+            style() { return layers.l2.solidStyle(214) },
+        },
+        215: {
+            title: "固化精炼器MK.V",
+            description: "采集成功率+30%，采集器MK.IV的概率提升到50%",
+            cost: new Decimal(1e11),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 214) },
+            style() { return layers.l2.solidStyle(215) },
+        },
+        221: {
+            title: "固化自动化MK.I",
+            description: "自动采集速度×2",
+            cost: new Decimal(1e11),
+            unlocked() { return player.l8.voidShaped },
+            style() { return layers.l2.solidStyle(221) },
+        },
+        222: {
+            title: "固化自动化MK.II",
+            description: "精炼器MK.II的效果^3，自动采集效率变为25%",
+            cost: new Decimal(1e12),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 221) },
+            style() { return layers.l2.solidStyle(222) },
+        },
+        223: {
+            title: "固化自动化MK.III",
+            description: "自动采集效率变为50%，采集器MK.VI的概率提升到100%",
+            cost: new Decimal(1e13),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 222) },
+            style() { return layers.l2.solidStyle(223) },
+        },
+        224: {
+            title: "固化自动化MK.IV",
+            description: "冲击不再重置MK.IV加成，自动采集效率变为75%",
+            cost: new Decimal(1e14),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 223) },
+            style() { return layers.l2.solidStyle(224) },
+        },
+        225: {
+            title: "固化自动化MK.V",
+            description: "采集成功率和自动采集效率都为100%",
+            cost: new Decimal(1e15),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 224) },
+            style() { return layers.l2.solidStyle(225) },
+        },
+        231: {
+            title: "固化协同机MK.I",
+            description() { return `MK.IV加成以较弱的方式对侵蚀之后的数据有效<br>当前:^${format(this.effect())}` },
+            effect() {
+                let eff = player.l1.datadupe.add(1).log10().pow_base(2)
+                if(eff.gte(2500)) eff = eff.div(2500).pow(0.3).mul(2500)
+                if(eff.gte(4800)) eff = eff.div(4800).pow(0.02).mul(4800)
+                return eff.root(8)
+            },
+            cost: new Decimal(1e15),
+            unlocked() { return player.l8.voidShaped },
+            style() { return layers.l2.solidStyle(231) },
+        },
+        232: {
+            title: "固化协同机MK.II",
+            description() { return `MK.IV加成以较弱的方式对冲击效果有效<br>当前:×${format(this.effect())}` },
+            effect() {
+                let eff = player.l1.datadupe.add(1).pow(0.45).add(366.6).pow_base(1.25)
+                if(eff.gte('e250000')) eff = eff.div('e250000').pow(0.2).mul('e250000')
+                if(eff.gte('e2e6')) eff = eff.div('e2e6').max(1).log10().pow(0.8).pow_base(10).mul('e2e6')
+                return eff.log10().mul(0.05)
+            },
+            cost: new Decimal(1e17),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 231) },
+            style() { return layers.l2.solidStyle(232) },
+        },
+        233: {
+            title: "固化协同机MK.III",
+            description() { return `基于点数加成虚空矿石获取<br>当前:×${format(this.effect())}` },
+            effect() { return player.points.add(1).log10().add(1).log10().add(1) },
+            cost: new Decimal(1e19),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 232) },
+            style() { return layers.l2.solidStyle(233) },
+        },
+        234: {
+            title: "固化协同机MK.IV",
+            description: "每次获得MK.IV加成时有5%概率获得200倍次数",
+            cost: new Decimal(1e21),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 233) },
+            style() { return layers.l2.solidStyle(234) },
+        },
+        235: {
+            title: "固化协同机MK.V",
+            description() { return `基于虚空矿石，在侵蚀之后获得更多转生点数<br>当前:×${format(this.effect())}` },
+            effect() { return player.l1.voidMine.max(1).log10().div(30).add(1) },
+            cost: new Decimal(1e23),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 234) },
+            style() { return layers.l2.solidStyle(235) },
+        },
+        241: {
+            title: "固化擢升器MK.I",
+            description: "每次采集使虚空矿石获取×+0.001，擢升效率×1.5",
+            cost: new Decimal('e25'),
+            unlocked() { return player.l8.voidShaped },
+            style() { return layers.l2.solidStyle(241) },
+        },
+        242: {
+            title: "固化擢升器MK.II",
+            description: "每次采集使虚空矿石获取×+0.01，擢升效率×1.5",
+            cost: new Decimal('e30'),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 241) },
+            style() { return layers.l2.solidStyle(242) },
+        },
+        243: {
+            title: "固化擢升器MK.III",
+            description: "每次采集使虚空矿石获取×+0.05，自动采集速度×3，擢升效率×1.5",
+            cost: new Decimal('e35'),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 242) },
+            style() { return layers.l2.solidStyle(243) },
+        },
+        244: {
+            title: "固化擢升器MK.IV",
+            description: "每次采集使虚空矿石获取×+0.1，擢升效率×1.5",
+            cost: new Decimal('e40'),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 243) },
+            style() { return layers.l2.solidStyle(244) },
+        },
+        245: {
+            title: "固化擢升器MK.V",
+            description: "每次采集使虚空矿石获取×+0.15，擢升效率×1.5",
+            cost: new Decimal('e45'),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 244) },
+            style() { return layers.l2.solidStyle(245) },
+        },
         11: {
             title: "艰难的抉择",
             description() {
@@ -302,7 +610,7 @@ addLayer("l2", {
         },
         23: {
             title: "紧密核心",
-            description: "解锁第二个核心增益",
+            description(){ return player.l8.voidShaped ? `解锁核心虚空增益II（数据在侵蚀之后×${format(layers.l2.coreVoidGain2())}）` : `解锁第二个核心增益` },
             cost: new Decimal(1e4),
             unlocked() { return hasUpgrade("l2", 22) },
 			charged: {
@@ -318,7 +626,7 @@ addLayer("l2", {
         24: {
             title: "超立方",
             description: "点数获取^1.1",
-            cost: new Decimal(1e9),
+            cost: new Decimal(2000),
             unlocked() { return hasUpgrade("l2", 23) },
 			charged: {
 				text: '真空湍流效率^1.1',
@@ -330,7 +638,7 @@ addLayer("l2", {
         25: {
             title: "更加艰难的抉择",
             description: "解锁转生增幅器",
-            cost: new Decimal(1e11),
+            cost: new Decimal(1e4),
             unlocked() { return hasUpgrade("l2", 24) },
 			charged: {
 				text: '解锁转生增幅器的充能',
@@ -341,7 +649,7 @@ addLayer("l2", {
         31: {
             title: "限制突破",
             description: "第一个复制器效果使用更好的公式",
-            cost: new Decimal(5e13),
+            cost: new Decimal(1e5),
             unlocked() { return hasUpgrade("l2", 25) },
         },
         32: {
@@ -368,10 +676,16 @@ addLayer("l2", {
             cost: new Decimal('1e1500'),
             unlocked() { return hasMilestone("l4", 21) },
         },
+        36: {
+            title: "自动谐振",
+            description: "解锁谐振跃迁时，自动完成谐振跃迁",
+            cost: new Decimal(1e9),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 31) },
+        },
         41: {
             title: "增幅器I-A",
             description: "移除第三个数据升级的一重软上限",
-            cost: new Decimal(5e10),
+            cost: new Decimal(1e4),
             canAfford() { return (!hasUpgrade("l2", 42) || hasUpgrade('l3', 42)) && player.l2.points.gte(this.cost) },
             unlocked() { return hasUpgrade("l2", 25) },
             ignoreAutoUpgrade: () => !hasUpgrade('l3', 42),
@@ -398,7 +712,7 @@ addLayer("l2", {
         42: {
             title: "增幅器I-B",
             description: "移除第五个数据升级的一重软上限",
-            cost: new Decimal(5e10),
+            cost: new Decimal(1e4),
             canAfford() { return (!hasUpgrade("l2", 41) || hasUpgrade('l3', 42)) && player.l2.points.gte(this.cost) },
             unlocked() { return hasUpgrade("l2", 25) },
             ignoreAutoUpgrade: () => !hasUpgrade('l3', 42),
@@ -747,12 +1061,12 @@ addLayer("l2", {
         91: {
             title: "源头",
             description: "解锁虚空核心",
-            cost: new Decimal('5555555'),
-            unlocked() { return hasUpgrade("l1",36)},
+            cost: new Decimal('3e8'),
+            unlocked() { return player.l8.voidShaped },
         },
         92: {
             title: "你知道转生也有侵蚀软上限吗",
-            description: "虚空核心第三效果对核心等级也生效",
+            description: "虚空核心效果III的冲击加成^1.25",
             cost: new Decimal('1e50'),
             unlocked() { return hasUpgrade("l2",91) },
         },
@@ -881,6 +1195,7 @@ addLayer("l2", {
                 if (hasUpgrade('l3', 65)) ct = ct.pow(0.95);
                 if (hasUpgrade('l3', 73)) ct = ct.pow(upgradeEffect('l3', 73));
                 ct = ct.pow(layers.l5.crystaleff())
+                if (player.l8.voidShaped && hasUpgrade("l2", 3)) ct = ct.pow(0.9)
                 return ct;
             },
             effect(x) {
@@ -957,7 +1272,7 @@ addLayer("l2", {
                 let ct = n(6.5)
                 if (x.gte(150)) x = x.div(150).pow(2).mul(300).sub(150)
                 if(x.lte(5)) ct = x.pow(1.25).div(4).add(6.5)
-                else if(x.lte(15)) ct = x.sub(5).max(0).times(20).pow(x.sub(6).max(0).pow(0.05)).add(9.1)
+                else if(x.lte(15)) ct = x.sub(5).max(0).times(3).pow(x.sub(6).max(0).pow(0.05)).add(9.1)
                 else ct = x.sub(15).pow_base(x.pow(0.01).div(10).add(1.1)).times(450)
                 if(hasUpgrade("l2",104)) ct = ct.min(x.pow(1.5).times(x.pow_base(1.05)).times(1000))
                 if(hasUpgrade("l2",95)) ct = ct.div(player.l2.wondervoid.add(1).pow(hasUpgrade("l2",101)?3.666:2).ln().div(20).add(1).times(hasUpgrade("l2",103)?buyableEffect("l2",22)[3]:1)) 
@@ -966,10 +1281,9 @@ addLayer("l2", {
             effect(x) {
                 let eff1=n(0),eff2=n(1),eff3=n(1),eff4=n(1),eff5=n(1),effcnt=x
                 if(hasUpgrade("l2",103)) effcnt = x.add(buyableEffect("l2",22)[4])
-                eff1 = effcnt.pow(2)
-                if(hasUpgrade("l2",95)) eff1 = eff1.times(buyableEffect("l2",22)[0])
-                eff2 = effcnt.times(3).add(1).ln().pow(4).div(10).add(1).max(1)
-                eff3 = effcnt.add(1).pow(10).max(1).log10().div(10).pow(hasUpgrade("l2",94)?effcnt.mul(2).add(10):10).max(1)
+                eff1 = effcnt.div(2).add(1)
+                eff2 = effcnt.times(3).add(1).ln().pow(4).div(10).add(1).max(1).root(4)
+                eff3 = effcnt.root(2).add(1)
                 if(hasUpgrade("l2",101)) eff3 = eff3.pow(buyableEffect("l2",22)[2])
                 if(hasUpgrade("l2",93)) eff4 = effcnt.sub(15).max(0).pow_base(2)
                 if(hasUpgrade("l2",93)) eff5 = effcnt.sub(15).max(0).add(1).ln().pow(2).max(1)
@@ -980,9 +1294,9 @@ addLayer("l2", {
                 return [eff1,eff2,eff3,eff4,eff5]
             },
             display() { return `<b class = "voidResource2", style="text-shadow:0 0 2px #ff00c3"> 需求: ${format(this.cost())} 转生点数</b>
-                                效果I:转生点数获取^${format(player.l2.points.add(10).max(10).log10().max(1).pow(this.effect()[0]))} 
+                                效果I:侵蚀之后转生点数×${format(this.effect()[0])} 
                                 效果II:虚空矿石获取^${format(this.effect()[1])},冲击加成按^2倍数加成
-                                效果III:二阶核心等级每秒乘以${format(this.effect()[2],4)}`//转生点数数量级^${format(this.effect()[0])}
+                                效果III:冲击加成×${format(this.effect()[2],4)}`//转生点数数量级^${format(this.effect()[0])}
                                 +(hasUpgrade("l2",93)?`<br>效果IV:转生点数在侵蚀之后^${format(this.effect()[3])}
                                 效果V:MK.IV加成获取量x${format(this.effect()[4])}`:``)},
             canAfford() { return player.l2.points.max(1).gt(this.cost()) },
@@ -1038,6 +1352,62 @@ addLayer("l2", {
                 }
             }
         },
+        31: {
+            title: "虚空共鸣",
+            cost(x) { return new Decimal(10).mul(Decimal.pow(10, x)) },
+            effect(x) { return x.add(1) },
+            display() { return `虚空矿石获取：×${format(this.effect())} → ×${format(getBuyableAmount('l2',31).add(2))}<br>价格：${format(this.cost())} 转生点数` },
+            canAfford() { return player.l2.points.gte(this.cost()) },
+            buy() {
+                if (!tmp.l2.buyables[31].canAfford) return
+                player.l2.points = player.l2.points.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            unlocked() { return player.l8.voidShaped },
+            style: { "height":"110px","width":"160px","font-size":"11px","border-color":"#ff00c3","color":"#ff00c3","border-radius":"2%","box-shadow":"0 0 10px #ff00c3","background-color" () { return tmp.l2.buyables[31].canAfford ? "#970065" : "#000000" } },
+        },
+        32: {
+            title: "冲击共鸣",
+            cost(x) { return new Decimal(10).mul(Decimal.pow(20, x)) },
+            effect(x) { return x.add(1) },
+            display() { return `冲击效果：×${format(this.effect())} → ×${format(getBuyableAmount('l2',32).add(2))}<br>价格：${format(this.cost())} 转生点数` },
+            canAfford() { return player.l2.points.gte(this.cost()) },
+            buy() {
+                if (!tmp.l2.buyables[32].canAfford) return
+                player.l2.points = player.l2.points.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            unlocked() { return player.l8.voidShaped },
+            style: { "height":"110px","width":"160px","font-size":"11px","border-color":"#ff00c3","color":"#ff00c3","border-radius":"2%","box-shadow":"0 0 10px #ff00c3","background-color" () { return tmp.l2.buyables[32].canAfford ? "#970065" : "#000000" } },
+        },
+        33: {
+            title: "擢升共鸣",
+            cost(x) { return new Decimal(10).mul(Decimal.pow(40, x)) },
+            effect(x) { return x.add(1) },
+            display() { return `擢升效果：×${format(this.effect())} → ×${format(getBuyableAmount('l2',33).add(2))}<br>价格：${format(this.cost())} 转生点数` },
+            canAfford() { return player.l2.points.gte(this.cost()) },
+            buy() {
+                if (!tmp.l2.buyables[33].canAfford) return
+                player.l2.points = player.l2.points.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            unlocked() { return player.l8.voidShaped },
+            style: { "height":"110px","width":"160px","font-size":"11px","border-color":"#ff00c3","color":"#ff00c3","border-radius":"2%","box-shadow":"0 0 10px #ff00c3","background-color" () { return tmp.l2.buyables[33].canAfford ? "#970065" : "#000000" } },
+        },
+        34: {
+            title: "转生共鸣",
+            cost(x) { return new Decimal(1e6).mul(Decimal.pow(100, x)) },
+            effect(x) { return Decimal.pow(2, x) },
+            display() { return `转生点数获取：×${format(this.effect())} → ×${format(Decimal.pow(2, getBuyableAmount('l2',34).add(1)))}<br>价格：${format(this.cost())} 转生点数` },
+            canAfford() { return player.l2.points.gte(this.cost()) },
+            buy() {
+                if (!tmp.l2.buyables[34].canAfford) return
+                player.l2.points = player.l2.points.sub(this.cost())
+                setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+            },
+            unlocked() { return player.l8.voidShaped },
+            style: { "height":"110px","width":"160px","font-size":"11px","border-color":"#ff00c3","color":"#ff00c3","border-radius":"2%","box-shadow":"0 0 10px #ff00c3","background-color" () { return tmp.l2.buyables[34].canAfford ? "#970065" : "#000000" } },
+        },
     },
     clickables:{
         11:{
@@ -1086,8 +1456,6 @@ addLayer("l2", {
             setBuyableAmount('l2', 11, getBuyableAmount('l2', 11).max(ncl));
         }
         let trueDiff = diff.div(layers.AC.devSpeedCal())
-        if(hasUpgrade("l2",92)) setBuyableAmount("l2",11,getBuyableAmount("l2",11).times(buyableEffect("l2",21)[2].pow(trueDiff)))
-        if(hasUpgrade("l2",91)) setBuyableAmount("l2",12,getBuyableAmount("l2",12).times(buyableEffect("l2",21)[2].pow(trueDiff)))
         if(hasUpgrade("l2",105)) layers.l2.clickables[11].onClick()
     },
     autoUpgrade() { return (player.l3.total.gte(1) && player.l2.total.gte(tmp.l3.ptsEff3)) },

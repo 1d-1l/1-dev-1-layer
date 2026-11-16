@@ -400,7 +400,6 @@ addLayer("l8", {
 		gain = gain.mul(tmp.l8.directMult)
 		if(gain.gte('1e256')) gain = n('1e256').mul(gain.div('1e256').log10().pow(0.5).pow_base(10))
 		// 七重诅咒2：本质获取^0.5
-		if(hasUpgrade("l1",35)) gain = gain.times(upgradeEffect("l1",35))
 		if(player.l8.voidShaped) gain = gain.pow(0.5);
 		return gain.floor().max(0);
 	},
@@ -561,7 +560,6 @@ addLayer("l8", {
 		let base = n(0);
 		if(!player.l8.unitied) base = base.add(2);
 		base = base.add(player.l8.points.root(2).mul(2));
-		if(hasUpgrade("l1",72)) base = base.times(upgradeEffect("l1",72))
 		return base.floor();
 	},
 	uBTL() {
@@ -644,6 +642,40 @@ addLayer("l8", {
 			overlay.remove();
 			layers.l8.voidShapeAnimRunning = false;
 		}, 10400);
+	},
+	// ===== 虚空成形（虚空大重置）=====
+	// 七重祝福：以 voidShaped 为凭据永久生效（1. 数据层新升级 已实装，2~7 待定）
+	// 七重诅咒的实装位置：
+	//   1 所有侵蚀常驻生效且固定^0.02，无周期重置 -> erosionEff() / update()
+	//   2 本质获取^0.5            -> getResetGain()
+	//   3 前七层速度降低1e12倍     -> bhEff()
+	//   4 无法获得暗物质和砖       -> bhDark.canClick() / bR
+	//   5 中子素块效果^0.3         -> 中子素块效果计算处（搜索“七重诅咒5”）
+	//   6 禁用核心效果4,5          -> layers.l2.coreEffect4 / coreEffect5
+	//   7 无法进行频率跃迁         -> 搜索“七重诅咒7”
+	// 大重置：把第1~8层的全部内容归零，只保留虚空之印(voidShaped)与成形动画标记；
+	// 成就层(AC)不在“1~8层”范围内，因此不受影响。
+	voidBigReset() {
+		let keepAnimRunned = player.l8.voidShapeAnimRunned;
+		let resetLayers = ['l1', 'l2', 'l3', 'l4', 'l5', 'l6', 'l7', 'l8'];
+		for(let i = 0;i < resetLayers.length;i++)
+		{
+			let lr = resetLayers[i];
+			layerDataReset(lr);
+			// layerDataReset 不会清空空的数组字段，充能升级需要单独清掉
+			player[lr].chargedUpgrades = [];
+			// 中止进行中的挑战，避免残留到新一轮
+			Vue.set(player[lr], 'activeChallenge', null);
+		}
+		player.l8.voidShaped = true;
+		player.l8.voidShapeAnimRunned = keepAnimRunned;
+		// 虚空成形阶段：七种侵蚀常驻生效（update 里每帧也会兜底）
+		player.l8.erosion.unlocked = true;
+		player.l8.erosion.run = [true, true, true, true, true, true, true];
+		player.points = decimalZero;
+		updateTemp();
+		updateTemp();
+		needCanvasUpdate = true;
 	},
 	bhUpCost() {
 		let baseLevel = player.l8.bhLevel;
@@ -893,6 +925,12 @@ addLayer("l8", {
 			player.l8.baLevel = player.l8.baLevel + 1;
 		}
 		if(!player.l8.erosion.unlocked && hasMilestone('l8', 23)) player.l8.erosion.unlocked = true;
+		// 虚空成形阶段：七种侵蚀全部强行生效
+		if(player.l8.voidShaped)
+		{
+			player.l8.erosion.unlocked = true;
+			for(let i = 0;i < 7;i++) player.l8.erosion.run[i] = true;
+		}
 		if(player.l8.erosion.unlocked)
 		{
 			if(!player.l8.erosion.run[0] && player.l1.points.gte('e1.5e10')) player.l8.erosion.run[0] = true;
@@ -910,6 +948,8 @@ addLayer("l8", {
 					if(player.l8.darkMatter.gt(0)) dmSpeed = player.l8.darkMatter.pow(hasUpgradeCharged("l1",15)?0.4:0.75);
 					if(player.l8.voidMatter.gt(0)) dmSpeed = dmSpeed.add(player.l8.voidMatter.mul(hasUpgrade("l8",183)?1:2.5));
 					player.l8.erosion.time[i] = player.l8.erosion.time[i].add(n(diff).mul(dmSpeed));
+					// 虚空成形阶段：侵蚀常驻生效，但不再进行周期性重置
+					if(player.l8.voidShaped) continue;
 					player.l8.erosion.lastCycle[i] = player.l8.erosion.lastCycle[i].add(diff);
 					if(player.l8.erosion.lastCycle[i].gte(layers.l8.erosionInterval(i)))
 					{
@@ -4006,10 +4046,13 @@ addLayer("l8", {
 		},
 		voidShape: {
 			display(){
-				let k = '<div style="position: relative; z-index: 1"><h2>虚空成形</h2><br>启用虚空成形后，将无法关闭。<br>你将完成彻底的升变，接受天幕之外伟大存在的注视，染上虚空的色彩<br>请一定要购买完所有充能升级。';
+				let shaped = player.l8.voidShaped;
+				let k = '<div style="position: relative; z-index: 1">' + (shaped
+					? '<h2>虚空已成</h2><br>你已完成虚空成形：第1~8层的全部内容已被大重置彻底清零，你正从第1层重新攀爬。<br>虚空之印永驻，七重祝福与七重诅咒将伴随此后的每一次重置。'
+					: '<h2>虚空成形 · 大重置</h2><br>启用虚空成形后，将无法关闭。<br>你将完成彻底的升变，接受天幕之外伟大存在的注视，染上虚空的色彩<br>【虚空大重置】第1~8层的全部内容（点数、升级、充能升级、购买项、里程碑、挑战记录、重置次数）将被彻底清零，你将从第1层从头开始。<br>【永久保留】成就层、虚空之印、七重祝福、七重诅咒。<br>请一定要购买完所有充能升级，它们会随大重置一同消失。');
 				k += '<br><table style="width: 100%; text-align: left; font-size: 1.25em"><tr>';
-				k += '<td style="width: 50%; vertical-align: top; color: green; text-shadow: 0px 0px 4px green">你将获得七重祝福：<br>1. 解锁数据层新升级<br>2. 解锁???<br>3. 解锁???<br>4. 解锁???<br>5. 解锁???<br>6. ?????<br>7. ?????</td>';/*1. 解锁虚空采集器<br>2. 解锁虚空降临<br>3. 解锁砖墙构筑<br>4. 解锁本质充能<br>5. 解锁半神武器<br>6. 窥探天幕，得见真实<br>7. 升华生命，行往无尽</td1. 解锁虚空采集器<br>2. 解锁虚空降临<br>3. 解锁砖墙构筑<br>4. 解锁本质充能<br>5. 解锁半神武器<br>6. 窥探天幕，得见真实<br>7. 升华生命，行往无尽*/
-				k += '<td style="width: 50%; vertical-align: top; color: red; text-shadow: 0px 0px 4px red">也将承受七重诅咒：<br>1. 所有侵蚀固定于指数^0.02<br>2. 本质获取^0.5<br>3. 前七层速度降低1.00e12倍<br>4. 无法获得暗物质和砖<br>5. 中子素块效果^0.3<br>6. 禁用核心效果4,5<br>7. 无法进行频率跃迁</td>';
+				k += '<td style="width: 50%; vertical-align: top; color: green; text-shadow: 0px 0px 4px green">' + (shaped ? '七重祝福（已获得）' : '七重祝福（将获得）') + '：<br>1. 解锁数据层新升级<br>2. 解锁???<br>3. 解锁???<br>4. 解锁???<br>5. 解锁???<br>6. ?????<br>7. ?????</td>';/*1. 解锁虚空采集器<br>2. 解锁虚空降临<br>3. 解锁砖墙构筑<br>4. 解锁本质充能<br>5. 解锁半神武器<br>6. 窥探天幕，得见真实<br>7. 升华生命，行往无尽</td1. 解锁虚空采集器<br>2. 解锁虚空降临<br>3. 解锁砖墙构筑<br>4. 解锁本质充能<br>5. 解锁半神武器<br>6. 窥探天幕，得见真实<br>7. 升华生命，行往无尽*/
+				k += '<td style="width: 50%; vertical-align: top; color: red; text-shadow: 0px 0px 4px red">' + (shaped ? '七重诅咒（生效中）' : '七重诅咒（将承受）') + '：<br>1. 所有侵蚀强行生效，固定于指数^0.02且不再周期性重置<br>2. 本质获取^0.5<br>3. 前七层速度降低1.00e12倍<br>4. 无法获得暗物质和砖<br>5. 中子素块效果^0.3<br>6. 禁用核心效果4,5<br>7. 无法进行频率跃迁</td>';
 				k += '</tr></table></div>';
 				if(player.l8.voidShaped) k += '<div class="voidShapeLines"></div><div class="voidShapeDots"></div>';
 				return k;
@@ -4017,44 +4060,19 @@ addLayer("l8", {
 			onClick(){
 				console.log('[虚空成形] onClick 触发于 ' + new Date().toLocaleTimeString());
 				if(player.l8.voidShaped) return;
-				for(let i = 0;i < 7;i++)
-				{
-					player.l8.erosion.lastCycle[i] = layers.l8.erosionInterval(i);
-				}
-				player.l8.voidShaped = true;
-				// 虚空物质凝聚重置 + 本质重置
-				layers.l8.clickables.bhVoid.onClick();
-				// 彻底清空虚空物质与砖
-				player.l8.voidMatter = n(0);
-				player.l8.brick.value = n(0);
-				player.l8.brick.valid = n(0);
-				player.l8.brick.energy = n(0);
-				player.l1.points = n(0)
-				player.l2.points = n(0)
-				player.l3.points = n(0)
-				player.l4.points = n(0)
-				player.l5.points = n(0)
-				player.l6.points = n(0)
-				player.l7.points = n(0)
-				for(let i = 0;i <= 5;i++)
-				{
-					player.l8.brick.dim[i] = n(0);
-					setBuyableAmount('l8', 71 + i, n(0));
-				}
-				for(let i = 0;i < 7;i++)
-				{
-					player.l8.erosion.lastCycle[i] = layers.l8.erosionInterval(i);
-				}
+				// 虚空大重置：第1~8层全部归零，随后播放成形动画
+				layers.l8.voidBigReset();
 				layers.l8.startVoidShapeAnim();
 			},
 			style(){
-				return {"min-height":"0px","height":"480px","width":"480px","border-color":"white","color":"black","background":"radial-gradient(circle, white 0%, gray 55%, black 100%)","position":"relative","overflow":"hidden"};
+				return {"min-height":"0px","height":"540px","width":"480px","border-color":"white","color":"black","background":"radial-gradient(circle, white 0%, gray 55%, black 100%)","position":"relative","overflow":"hidden"};
 			},
 			canClick(){
 				return hasUpgrade('l8', 185) && !player.l8.voidShaped;
 			},
 			unlocked(){
-				return hasUpgrade('l8', 185);
+				// 大重置会清空升级，但成形面板要常驻可见，用来展示虚空之印/祝福/诅咒
+				return hasUpgrade('l8', 185) || player.l8.voidShaped;
 			},
 		},
 		study1: {
@@ -4637,8 +4655,8 @@ addLayer("l8", {
 						for(let i = 0;i < 7;i++)
 						{
 							s += `<tr><td style="width: 125px"><span style="color: ${color[i]}; text-shadow: 0px 0px 5px">${name[i]}侵蚀<br>(${format(player.l8.erosion.time[i], 1)}s)</span></td>`;
-							s += `<td style="width: 200px; color: ${player.l8.erosion.run[i] ? 'purple' : 'green'}">触发于 ${format(start[i])}<br>`;
-							if(player.l8.erosion.run[i]) s += `循环重置于${format(player.l8.erosion.lastCycle[i], 1)}s/${format(layers.l8.erosionInterval(i), 1)}s</td>`;
+							s += `<td style="width: 200px; color: ${player.l8.erosion.run[i] ? 'purple' : 'green'}">${player.l8.voidShaped ? '虚空常驻生效' : '触发于 ' + format(start[i])}<br>`;
+							if(player.l8.erosion.run[i]) s += player.l8.voidShaped ? '无周期重置</td>' : `循环重置于${format(player.l8.erosion.lastCycle[i], 1)}s/${format(layers.l8.erosionInterval(i), 1)}s</td>`;
 							s += `<td style="width: 200px">当前产能指数^<span style="color: ${player.l8.erosion.run[i] ? 'red' : 'green'}">${format(layers.l8.erosionEff(i))}</span></td></tr>`;
 						}
 						s += '</table></tbody>';
@@ -4734,7 +4752,8 @@ addLayer("l8", {
 				['microtabs', 'erosion'],
 			],
 			unlocked() {
-				return hasMilestone('l8', 23);
+				// 成形后侵蚀转为常驻生效，但“虚空”页里的成形状态仍需可见
+				return hasMilestone('l8', 23) || player.l8.voidShaped;
 			},
 			buttonStyle() {return {'border-color': 'purple'};},
 		},

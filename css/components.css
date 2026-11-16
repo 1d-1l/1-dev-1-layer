@@ -243,32 +243,11 @@
     background-position: -100% calc(40% + sin(var(--progress)) * 25%);
   }
 }
-@keyframes voidLinesFlicker {
-  0%, 100% { opacity: 0.12; }
-  50% { opacity: 0.55; }
-}
-@keyframes voidDotsRise {
-  from { background-position: 0 0, 0 0; }
-  to { background-position: 0 -120px, 0 -100px; }
-}
-.voidShapeLines {
-  position: absolute;
-  left: 0; right: 0; top: 0; bottom: 0;
-  z-index: 0;
-  pointer-events: none;
-  background: repeating-linear-gradient(45deg, transparent 0 26px, rgba(0, 0, 0, 0.5) 26px 28px);
-  animation: voidLinesFlicker 2.7s ease-in-out infinite;
-}
+/* 虚空成形面板内旧的斜线/固定点阵由全屏背景动效取代 */
+.voidShapeLines,
 .voidShapeDots {
-  position: absolute;
-  left: 0; right: 0; top: 0; bottom: 0;
-  z-index: 0;
-  pointer-events: none;
-  background-image: radial-gradient(circle, black 2px, transparent 3px), radial-gradient(circle, black 1.5px, transparent 2.5px);
-  background-size: 90px 120px, 140px 100px;
-  animation: voidDotsRise 5s linear infinite;
+  display: none;
 }
-
 #voidAnimOverlay {
   position: fixed;
   left: 0; right: 0; top: 0; bottom: 0;
@@ -315,22 +294,13 @@ body.voidEmerge #app {
 body.voidShapedUI {
   background: radial-gradient(circle, white 0%, gray 55%, black 100%);
 }
-body.voidShapedUI #app::before {
-  content: '';
+
+/* 虚空成形后的全屏背景由 js/technical/voidBackground.js 绘制：
+   老电影式的黑色竖向细划痕 + 从底部随机升起、到屏幕中线消融的黑点。 */
+#voidBgCanvas {
   position: fixed;
-  left: 0; right: 0; top: 0; bottom: 0;
+  left: 0;
+  top: 0;
+  z-index: -1000;
   pointer-events: none;
-  z-index: -1;
-  background: repeating-linear-gradient(45deg, rgba(0,0,0,0.5) 0 26px, rgba(0,0,0,0.75) 26px 28px);
-  animation: voidLinesFlicker 7s ease-in-out infinite;
-}
-body.voidShapedUI #app::after {
-  content: '';
-  position: fixed;
-  left: 0; right: 0; top: 0; bottom: 0;
-  pointer-events: none;
-  z-index: -1;
-  background-image: radial-gradient(circle, black 2px, transparent 3px), radial-gradient(circle, black 1.5px, transparent 2.5px);
-  background-size: 90px 120px, 140px 100px;
-  animation: voidDotsRise 5s linear infinite;
 }

@@ -22,7 +22,7 @@ let winText = `3`
 
 // If you add new functions anywhere inside of a layer, and those functions have an effect when called, add them here.
 // (The ones here are examples, all official functions are already taken care of)
-var doNotCallTheseFunctionsEveryTick = ["blowUpEverything","calceff1","calceff2","calceff3","eff1adjust","eff2adjust","eff3adjust","startVoidShapeAnim"]
+var doNotCallTheseFunctionsEveryTick = ["blowUpEverything","calceff1","calceff2","calceff3","eff1adjust","eff2adjust","eff3adjust","startVoidShapeAnim","voidBigReset"]
 
 function n(x) {
 	return new Decimal(x)
@@ -52,7 +52,7 @@ function getPointGen() {
 
 	if(hasMilestone('l4', 0)) gain=gain.mul(layers.l4.total_bars().add(1));
 
-	if(hasMilestone('l2',0)) gain = gain.mul(2)
+	if(hasMilestone('l2',0)) gain = gain.mul(player.l8.voidShaped ? 10 : 2)
 	
 	gain = gain.mul(tmp.l3.ptsEff1);
 	if(hasUpgrade('l3', 11)) gain = gain.mul(upgradeEffect('l3', 11));
@@ -79,7 +79,7 @@ function getPointGen() {
 	if(hasUpgrade('l6', 92)) gain = gain.pow(upgradeEffect('l6', 92));
 	
 	if(hasUpgrade('l8', 11)) gain = gain.pow(player.l8.tuning[0].div(10));
-	if(hasUpgrade('l1', 71)) gain = gain.pow(upgradeEffect("l1",71))
+	if(hasUpgrade('l1', 71) && !hasUpgrade('l2',231)) gain = gain.pow(upgradeEffect("l1",71))
 	gain = gain.pow(buyableEffect('l8', 1002));
 	gain = gain.pow(buyableEffect('l8', 1005));
 	gain = gain.pow(tmp.l4.levelEffect);
@@ -110,6 +110,9 @@ function getPointGen() {
 	
 	if(gain.gte('ee10')) player.l8.baC.unl1 = true;
 	if(gain.gte('e4.8e13')) player.l8.baC.unl2 = true;
+	
+	// 点数获取在 ee7 之后受 log10 软上限（作用在 pointGen，不直接改库存）
+	if(gain.gte('ee7')) gain = gain.log10().log10().mul(1e6).add(3e6).pow_base(10)
 	
     return gain
 }

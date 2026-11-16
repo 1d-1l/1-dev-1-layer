@@ -32,7 +32,6 @@ addLayer("AC", {
         if(player.l7.neff2[13]) dev = dev.times(player.l7.ncalc2[13])
 		if(hasUpgrade('l8', 14)) dev = dev.mul(tmp['l8'].bhEff);
 		if(hasUpgrade('l8', 111)) dev = dev.mul(5);
-        if(hasUpgrade("l1", 35)) dev = dev.mul(100)
 		return dev.softcap(1e10, 0.1).min(1e100)
    },
     effectDescription() {

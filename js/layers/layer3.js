@@ -20,7 +20,7 @@ addLayer("l3", {
         }
     },
     color: "#00d2e0",
-    requires: () => inChallenge('l5', 22) ? new Decimal(1/0) : new Decimal(1e19),
+    requires: () => inChallenge('l5', 22) ? new Decimal(1/0) : new Decimal(player.l8.voidShaped ? 1e30 : 1e19),
     resource: "致密点数",
     baseResource: "转生点数",
     baseAmount() { return player.l2.points },
