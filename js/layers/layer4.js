@@ -342,6 +342,7 @@ addLayer("l4", {
 			if(player.l4.level.lt(max) && layers.l4.clickables[11].canClick()) layers.l4.clickables[11].onClick();
 		}
 		player.l8.baC.lastInjuredTime = player.l8.baC.lastInjuredTime.add(diff);
+        
 	},
     total_bars() {
         return Decimal.sub(1024, player.l4.y).add(player.l4.level.sub(1).mul(1024)).floor();

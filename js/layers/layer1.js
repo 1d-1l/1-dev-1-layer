@@ -107,7 +107,7 @@ addLayer("l1", {
                 "main-display",
                 "prestige-button",
                 "resource-display",
-                ["upgrades",[1,2,3]],
+                ["upgrades",[1,2,3,10]],
             ],
         },
         "复制器": {
@@ -323,7 +323,6 @@ addLayer("l1", {
         if (hasUpgrade('l4', 34)) {
             let a = player.l1.repl.pow(0.6).add(1).pow(hasUpgrade('l2', 71) ? upgradeEffect('l2', 71) : 1);
             if (a.gte(1e100)) a = a.log10().div(100).pow(0.65).mul(100).pow_base(10);
-            if (a.gte("ee750000")) a = a.div("ee750000").log10().pow(0.5).pow_base(10).mul('ee750000');
             return a;
         }
         let a = player.l1.repl.pow(0.65).add(1)
@@ -333,6 +332,7 @@ addLayer("l1", {
 		a = a.pow(buyableEffect('l8', 1012));
 		if (a.gte(1e5)) a = a.div(1e5).pow(0.35).mul(1e5)
         if (a.gte(1e100)) a = a.log10().div(100).pow(0.65).mul(100).pow_base(10);
+        if (a.gte("ee750000")) a = a.div("ee750000").log10().pow(0.5).pow_base(10).mul('ee750000'); 
         return a
     },
     replEff2() {
@@ -734,7 +734,7 @@ addLayer("l1", {
                 if (!hasUpgrade('l1', this.id)) return n(1)
                 let b = upgradeEffect("l1", 25).add(0.05)
                 let eff = upgradeEffect("l1", 21).pow(b)
-                if (eff.gte(1e50)) eff = eff.div(1e50).pow(0.01).times(1e50)
+                if (eff.gte(1e50)) eff = eff.div(1e50).pow(hasUpgrade("l1", 26) ? 0.1 : 0.01).times(1e50)
                 return eff
             },
             effectDisplay() { let a = "x" + format(this.effect()); return a; },
@@ -775,11 +775,15 @@ addLayer("l1", {
 			},
         },
         26: {
-            title: "无穷递归",
-            description(){ return `转生点数增强侵蚀后的转生点数获取<br>当前:×${format(this.effect())}` },
-            effect(){ return n(1).add(player.l2.points.add(1).log10().pow(2)) },
-            cost: new Decimal('e1.111e11'),
-            unlocked() { return hasUpgrade("l1",25) },
+            title: "递归递归递归递归递归递归",
+            description: "本行第一个升级更好，本行第四个升级的第一软上限更弱",
+            cost: new Decimal('1e3840'),
+            unlocked() { return hasMilestone('l4', 19) },
+			charged: {
+				text: '本行第一个升级充能效果^1.5',
+				cost: n(1e292),
+				effect() { return n(1.5); },
+			},
         },
         31: {
             title: "重复了无数加一次的开始",
@@ -1113,6 +1117,13 @@ addLayer("l1", {
             description(){return `每次采集自动复读200%的冲击效果（不消耗虚空矿石）`},
             cost: new Decimal("1e43"),
             unlocked() {return hasUpgrade("l1",85)||hasUpgrade("l2",245)},
+        },
+        101: {
+            title: "无穷递归",
+            description(){ return `转生点数增强侵蚀后的转生点数获取<br>当前:×${format(this.effect())}` },
+            effect(){ return n(1).add(player.l2.points.add(1).log10().pow(2)) },
+            cost: new Decimal('e1.111e11'),
+            unlocked() { return hasUpgrade("l1",45) },
         },
     },
     clickables:{

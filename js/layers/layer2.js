@@ -171,7 +171,7 @@ addLayer("l2", {
         if(hasUpgrade("l1",75)&&!hasUpgrade("l2",235)) gain = gain.mul(upgradeEffect("l1",75))
         if(hasUpgrade("l2",235)) gain = gain.mul(upgradeEffect("l2",235))
         // 无穷递归：侵蚀之后转生点数×(1+log10(1+转生点数)^2)
-        if(hasUpgrade("l1",26)) gain = gain.mul(upgradeEffect("l1",26))
+        if(hasUpgrade("l1",101)) gain = gain.mul(upgradeEffect("l1",101))
         // 数据终结（l1-36）：侵蚀之后先 ^4，再由核心回响放大
         if(hasUpgrade("l1",36)) gain = gain.pow(4)
         // 核心回响：侵蚀之后乘(1+核心等级)，避免被侵蚀软上限压掉
@@ -235,7 +235,9 @@ addLayer("l2", {
             requirementDescription: "1e6 总转生点数",
             effectDescription: "数据层自动化：自动第一层重置/自动采集常开，数据获取×10",
             done() { return player.l8.voidShaped && player.l2.total.gte(1e6) },
+            unlocked() { return player.l8.voidShaped },
         },
+        
     },
     upgrades: {
         1: {
@@ -289,195 +291,6 @@ addLayer("l2", {
             description: "每秒获取1e10%重置时可获取的数据",
             cost: new Decimal(5e7),
             unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 25) },
-        },
-        201: {
-            title: "固化采集器MK.II",
-            description: "采集成功率提升至25%",
-            cost: new Decimal(1e3),
-            unlocked() { return player.l8.voidShaped },
-            style() { return layers.l2.solidStyle(201) },
-        },
-        202: {
-            title: "固化采集器MK.III",
-            description: "采集成功率提升至50%，自动采集速度×4",
-            cost: new Decimal(1e4),
-            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 201) },
-            style() { return layers.l2.solidStyle(202) },
-        },
-        203: {
-            title: "固化采集器MK.IV",
-            description: "每次采集有25%概率使数据获取^2",
-            cost: new Decimal(1e5),
-            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 202) },
-            style() { return layers.l2.solidStyle(203) },
-        },
-        204: {
-            title: "固化采集器MK.V",
-            description: "基于数据增加采集成功率，上限25%",
-            cost: new Decimal(1e6),
-            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 203) },
-            style() { return layers.l2.solidStyle(204) },
-        },
-        205: {
-            title: "固化采集器MK.VI",
-            description: "每次获取虚空矿石时，15%概率获得15%重置数据",
-            cost: new Decimal(1e7),
-            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 204) },
-            style() { return layers.l2.solidStyle(205) },
-        },
-        211: {
-            title: "固化精炼器MK.I",
-            description: "你可以冲击虚空采集器了",
-            cost: new Decimal(1e7),
-            unlocked() { return player.l8.voidShaped },
-            style() { return layers.l2.solidStyle(211) },
-        },
-        212: {
-            title: "固化精炼器MK.II",
-            description: "冲击以倍数加成虚空矿石获取，采集器MK.IV的概率提升到60%",
-            cost: new Decimal(1e8),
-            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 211) },
-            style() { return layers.l2.solidStyle(212) },
-        },
-        213: {
-            title: "固化精炼器MK.III",
-            description: "矿石加成自身获取，数据获取^2",
-            cost: new Decimal(1e9),
-            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 212) },
-            style() { return layers.l2.solidStyle(213) },
-        },
-        214: {
-            title: "固化精炼器MK.IV",
-            description: "MK.IV加成次数计入冲击加成公式",
-            cost: new Decimal(1e10),
-            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 213) },
-            style() { return layers.l2.solidStyle(214) },
-        },
-        215: {
-            title: "固化精炼器MK.V",
-            description: "采集成功率+30%，采集器MK.IV的概率提升到50%",
-            cost: new Decimal(1e11),
-            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 214) },
-            style() { return layers.l2.solidStyle(215) },
-        },
-        221: {
-            title: "固化自动化MK.I",
-            description: "自动采集速度×2",
-            cost: new Decimal(1e11),
-            unlocked() { return player.l8.voidShaped },
-            style() { return layers.l2.solidStyle(221) },
-        },
-        222: {
-            title: "固化自动化MK.II",
-            description: "精炼器MK.II的效果^3，自动采集效率变为25%",
-            cost: new Decimal(1e12),
-            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 221) },
-            style() { return layers.l2.solidStyle(222) },
-        },
-        223: {
-            title: "固化自动化MK.III",
-            description: "自动采集效率变为50%，采集器MK.VI的概率提升到100%",
-            cost: new Decimal(1e13),
-            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 222) },
-            style() { return layers.l2.solidStyle(223) },
-        },
-        224: {
-            title: "固化自动化MK.IV",
-            description: "冲击不再重置MK.IV加成，自动采集效率变为75%",
-            cost: new Decimal(1e14),
-            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 223) },
-            style() { return layers.l2.solidStyle(224) },
-        },
-        225: {
-            title: "固化自动化MK.V",
-            description: "采集成功率和自动采集效率都为100%",
-            cost: new Decimal(1e15),
-            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 224) },
-            style() { return layers.l2.solidStyle(225) },
-        },
-        231: {
-            title: "固化协同机MK.I",
-            description() { return `MK.IV加成以较弱的方式对侵蚀之后的数据有效<br>当前:^${format(this.effect())}` },
-            effect() {
-                let eff = player.l1.datadupe.add(1).log10().pow_base(2)
-                if(eff.gte(2500)) eff = eff.div(2500).pow(0.3).mul(2500)
-                if(eff.gte(4800)) eff = eff.div(4800).pow(0.02).mul(4800)
-                return eff.root(8)
-            },
-            cost: new Decimal(1e15),
-            unlocked() { return player.l8.voidShaped },
-            style() { return layers.l2.solidStyle(231) },
-        },
-        232: {
-            title: "固化协同机MK.II",
-            description() { return `MK.IV加成以较弱的方式对冲击效果有效<br>当前:×${format(this.effect())}` },
-            effect() {
-                let eff = player.l1.datadupe.add(1).pow(0.45).add(366.6).pow_base(1.25)
-                if(eff.gte('e250000')) eff = eff.div('e250000').pow(0.2).mul('e250000')
-                if(eff.gte('e2e6')) eff = eff.div('e2e6').max(1).log10().pow(0.8).pow_base(10).mul('e2e6')
-                return eff.log10().mul(0.05)
-            },
-            cost: new Decimal(1e17),
-            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 231) },
-            style() { return layers.l2.solidStyle(232) },
-        },
-        233: {
-            title: "固化协同机MK.III",
-            description() { return `基于点数加成虚空矿石获取<br>当前:×${format(this.effect())}` },
-            effect() { return player.points.add(1).log10().add(1).log10().add(1) },
-            cost: new Decimal(1e19),
-            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 232) },
-            style() { return layers.l2.solidStyle(233) },
-        },
-        234: {
-            title: "固化协同机MK.IV",
-            description: "每次获得MK.IV加成时有5%概率获得200倍次数",
-            cost: new Decimal(1e21),
-            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 233) },
-            style() { return layers.l2.solidStyle(234) },
-        },
-        235: {
-            title: "固化协同机MK.V",
-            description() { return `基于虚空矿石，在侵蚀之后获得更多转生点数<br>当前:×${format(this.effect())}` },
-            effect() { return player.l1.voidMine.max(1).log10().div(30).add(1) },
-            cost: new Decimal(1e23),
-            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 234) },
-            style() { return layers.l2.solidStyle(235) },
-        },
-        241: {
-            title: "固化擢升器MK.I",
-            description: "每次采集使虚空矿石获取×+0.001，擢升效率×1.5",
-            cost: new Decimal('e25'),
-            unlocked() { return player.l8.voidShaped },
-            style() { return layers.l2.solidStyle(241) },
-        },
-        242: {
-            title: "固化擢升器MK.II",
-            description: "每次采集使虚空矿石获取×+0.01，擢升效率×1.5",
-            cost: new Decimal('e30'),
-            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 241) },
-            style() { return layers.l2.solidStyle(242) },
-        },
-        243: {
-            title: "固化擢升器MK.III",
-            description: "每次采集使虚空矿石获取×+0.05，自动采集速度×3，擢升效率×1.5",
-            cost: new Decimal('e35'),
-            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 242) },
-            style() { return layers.l2.solidStyle(243) },
-        },
-        244: {
-            title: "固化擢升器MK.IV",
-            description: "每次采集使虚空矿石获取×+0.1，擢升效率×1.5",
-            cost: new Decimal('e40'),
-            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 243) },
-            style() { return layers.l2.solidStyle(244) },
-        },
-        245: {
-            title: "固化擢升器MK.V",
-            description: "每次采集使虚空矿石获取×+0.15，擢升效率×1.5",
-            cost: new Decimal('e45'),
-            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 244) },
-            style() { return layers.l2.solidStyle(245) },
         },
         11: {
             title: "艰难的抉择",
@@ -626,7 +439,7 @@ addLayer("l2", {
         24: {
             title: "超立方",
             description: "点数获取^1.1",
-            cost: new Decimal(2000),
+            cost: new Decimal(1e9),
             unlocked() { return hasUpgrade("l2", 23) },
 			charged: {
 				text: '真空湍流效率^1.1',
@@ -638,7 +451,7 @@ addLayer("l2", {
         25: {
             title: "更加艰难的抉择",
             description: "解锁转生增幅器",
-            cost: new Decimal(1e4),
+            cost: new Decimal(1e11),
             unlocked() { return hasUpgrade("l2", 24) },
 			charged: {
 				text: '解锁转生增幅器的充能',
@@ -649,19 +462,19 @@ addLayer("l2", {
         31: {
             title: "限制突破",
             description: "第一个复制器效果使用更好的公式",
-            cost: new Decimal(1e5),
+            cost: new Decimal(5e13),
             unlocked() { return hasUpgrade("l2", 25) },
         },
         32: {
             title: "致密核心",
             description: "解锁第三行增幅器",
-            cost: new Decimal(1e18),
+            cost: new Decimal(1e17),
             unlocked() { return hasUpgrade("l2", 31) },
         },
         33: {
             title: "更远之境",
             description: "解锁下一层",
-            cost: new Decimal(1e19),
+            cost: new Decimal(1e18),
             unlocked() { return hasUpgrade("l2", 32) },
         },
         34: {
@@ -685,7 +498,7 @@ addLayer("l2", {
         41: {
             title: "增幅器I-A",
             description: "移除第三个数据升级的一重软上限",
-            cost: new Decimal(1e4),
+            cost: new Decimal(5e10),
             canAfford() { return (!hasUpgrade("l2", 42) || hasUpgrade('l3', 42)) && player.l2.points.gte(this.cost) },
             unlocked() { return hasUpgrade("l2", 25) },
             ignoreAutoUpgrade: () => !hasUpgrade('l3', 42),
@@ -712,7 +525,7 @@ addLayer("l2", {
         42: {
             title: "增幅器I-B",
             description: "移除第五个数据升级的一重软上限",
-            cost: new Decimal(1e4),
+            cost: new Decimal(5e10),
             canAfford() { return (!hasUpgrade("l2", 41) || hasUpgrade('l3', 42)) && player.l2.points.gte(this.cost) },
             unlocked() { return hasUpgrade("l2", 25) },
             ignoreAutoUpgrade: () => !hasUpgrade('l3', 42),
@@ -1122,6 +935,195 @@ addLayer("l2", {
             cost: new Decimal('e2e7'),
             unlocked() { return hasUpgrade("l2",104) },
         },
+        201: {
+            title: "固化采集器MK.II",
+            description: "采集成功率提升至25%",
+            cost: new Decimal(1e3),
+            unlocked() { return player.l8.voidShaped },
+            style() { return layers.l2.solidStyle(201) },
+        },
+        202: {
+            title: "固化采集器MK.III",
+            description: "采集成功率提升至50%，自动采集速度×4",
+            cost: new Decimal(1e4),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 201) },
+            style() { return layers.l2.solidStyle(202) },
+        },
+        203: {
+            title: "固化采集器MK.IV",
+            description: "每次采集有25%概率使数据获取^2",
+            cost: new Decimal(1e5),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 202) },
+            style() { return layers.l2.solidStyle(203) },
+        },
+        204: {
+            title: "固化采集器MK.V",
+            description: "基于数据增加采集成功率，上限25%",
+            cost: new Decimal(1e6),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 203) },
+            style() { return layers.l2.solidStyle(204) },
+        },
+        205: {
+            title: "固化采集器MK.VI",
+            description: "每次获取虚空矿石时，15%概率获得15%重置数据",
+            cost: new Decimal(1e7),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 204) },
+            style() { return layers.l2.solidStyle(205) },
+        },
+        211: {
+            title: "固化精炼器MK.I",
+            description: "你可以冲击虚空采集器了",
+            cost: new Decimal(1e7),
+            unlocked() { return player.l8.voidShaped },
+            style() { return layers.l2.solidStyle(211) },
+        },
+        212: {
+            title: "固化精炼器MK.II",
+            description: "冲击以倍数加成虚空矿石获取，采集器MK.IV的概率提升到60%",
+            cost: new Decimal(1e8),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 211) },
+            style() { return layers.l2.solidStyle(212) },
+        },
+        213: {
+            title: "固化精炼器MK.III",
+            description: "矿石加成自身获取，数据获取^2",
+            cost: new Decimal(1e9),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 212) },
+            style() { return layers.l2.solidStyle(213) },
+        },
+        214: {
+            title: "固化精炼器MK.IV",
+            description: "MK.IV加成次数计入冲击加成公式",
+            cost: new Decimal(1e10),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 213) },
+            style() { return layers.l2.solidStyle(214) },
+        },
+        215: {
+            title: "固化精炼器MK.V",
+            description: "采集成功率+30%，采集器MK.IV的概率提升到50%",
+            cost: new Decimal(1e11),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 214) },
+            style() { return layers.l2.solidStyle(215) },
+        },
+        221: {
+            title: "固化自动化MK.I",
+            description: "自动采集速度×2",
+            cost: new Decimal(1e11),
+            unlocked() { return player.l8.voidShaped },
+            style() { return layers.l2.solidStyle(221) },
+        },
+        222: {
+            title: "固化自动化MK.II",
+            description: "精炼器MK.II的效果^3，自动采集效率变为25%",
+            cost: new Decimal(1e12),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 221) },
+            style() { return layers.l2.solidStyle(222) },
+        },
+        223: {
+            title: "固化自动化MK.III",
+            description: "自动采集效率变为50%，采集器MK.VI的概率提升到100%",
+            cost: new Decimal(1e13),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 222) },
+            style() { return layers.l2.solidStyle(223) },
+        },
+        224: {
+            title: "固化自动化MK.IV",
+            description: "冲击不再重置MK.IV加成，自动采集效率变为75%",
+            cost: new Decimal(1e14),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 223) },
+            style() { return layers.l2.solidStyle(224) },
+        },
+        225: {
+            title: "固化自动化MK.V",
+            description: "采集成功率和自动采集效率都为100%",
+            cost: new Decimal(1e15),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 224) },
+            style() { return layers.l2.solidStyle(225) },
+        },
+        231: {
+            title: "固化协同机MK.I",
+            description() { return `MK.IV加成以较弱的方式对侵蚀之后的数据有效<br>当前:^${format(this.effect())}` },
+            effect() {
+                let eff = player.l1.datadupe.add(1).log10().pow_base(2)
+                if(eff.gte(2500)) eff = eff.div(2500).pow(0.3).mul(2500)
+                if(eff.gte(4800)) eff = eff.div(4800).pow(0.02).mul(4800)
+                return eff.root(8)
+            },
+            cost: new Decimal(1e15),
+            unlocked() { return player.l8.voidShaped },
+            style() { return layers.l2.solidStyle(231) },
+        },
+        232: {
+            title: "固化协同机MK.II",
+            description() { return `MK.IV加成以较弱的方式对冲击效果有效<br>当前:×${format(this.effect())}` },
+            effect() {
+                let eff = player.l1.datadupe.add(1).pow(0.45).add(366.6).pow_base(1.25)
+                if(eff.gte('e250000')) eff = eff.div('e250000').pow(0.2).mul('e250000')
+                if(eff.gte('e2e6')) eff = eff.div('e2e6').max(1).log10().pow(0.8).pow_base(10).mul('e2e6')
+                return eff.log10().mul(0.05)
+            },
+            cost: new Decimal(1e17),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 231) },
+            style() { return layers.l2.solidStyle(232) },
+        },
+        233: {
+            title: "固化协同机MK.III",
+            description() { return `基于点数加成虚空矿石获取<br>当前:×${format(this.effect())}` },
+            effect() { return player.points.add(1).log10().add(1).log10().add(1) },
+            cost: new Decimal(1e19),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 232) },
+            style() { return layers.l2.solidStyle(233) },
+        },
+        234: {
+            title: "固化协同机MK.IV",
+            description: "每次获得MK.IV加成时有5%概率获得200倍次数",
+            cost: new Decimal(1e21),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 233) },
+            style() { return layers.l2.solidStyle(234) },
+        },
+        235: {
+            title: "固化协同机MK.V",
+            description() { return `基于虚空矿石，在侵蚀之后获得更多转生点数<br>当前:×${format(this.effect())}` },
+            effect() { return player.l1.voidMine.max(1).log10().div(30).add(1) },
+            cost: new Decimal(1e23),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 234) },
+            style() { return layers.l2.solidStyle(235) },
+        },
+        241: {
+            title: "固化擢升器MK.I",
+            description: "每次采集使虚空矿石获取×+0.001，擢升效率×1.5",
+            cost: new Decimal('e25'),
+            unlocked() { return player.l8.voidShaped },
+            style() { return layers.l2.solidStyle(241) },
+        },
+        242: {
+            title: "固化擢升器MK.II",
+            description: "每次采集使虚空矿石获取×+0.01，擢升效率×1.5",
+            cost: new Decimal('e30'),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 241) },
+            style() { return layers.l2.solidStyle(242) },
+        },
+        243: {
+            title: "固化擢升器MK.III",
+            description: "每次采集使虚空矿石获取×+0.05，自动采集速度×3，擢升效率×1.5",
+            cost: new Decimal('e35'),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 242) },
+            style() { return layers.l2.solidStyle(243) },
+        },
+        244: {
+            title: "固化擢升器MK.IV",
+            description: "每次采集使虚空矿石获取×+0.1，擢升效率×1.5",
+            cost: new Decimal('e40'),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 243) },
+            style() { return layers.l2.solidStyle(244) },
+        },
+        245: {
+            title: "固化擢升器MK.V",
+            description: "每次采集使虚空矿石获取×+0.15，擢升效率×1.5",
+            cost: new Decimal('e45'),
+            unlocked() { return player.l8.voidShaped && hasUpgrade("l2", 244) },
+            style() { return layers.l2.solidStyle(245) },
+        },
     },
     clickables: {
         31: {
@@ -1455,7 +1457,6 @@ addLayer("l2", {
             ncl = ncl.add(1).floor();
             setBuyableAmount('l2', 11, getBuyableAmount('l2', 11).max(ncl));
         }
-        let trueDiff = diff.div(layers.AC.devSpeedCal())
         if(hasUpgrade("l2",105)) layers.l2.clickables[11].onClick()
     },
     autoUpgrade() { return (player.l3.total.gte(1) && player.l2.total.gte(tmp.l3.ptsEff3)) },

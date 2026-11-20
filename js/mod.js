@@ -112,7 +112,7 @@ function getPointGen() {
 	if(gain.gte('e4.8e13')) player.l8.baC.unl2 = true;
 	
 	// 点数获取在 ee7 之后受 log10 软上限（作用在 pointGen，不直接改库存）
-	if(gain.gte('ee7')) gain = gain.log10().log10().mul(1e6).add(3e6).pow_base(10)
+	if(player.l8.voidShaped && gain.gte('ee7')) gain = gain.log10().log10().mul(1e6).add(3e6).pow_base(10) //我去你的 这直接给虚空成形前干废了
 	
     return gain
 }
